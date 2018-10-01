@@ -1,23 +1,23 @@
 #include "Nut.h"
 #include "tween.hpp"
 
-CNut::CNut() :CNut(NutType::White_One) {
+CNut::CNut() :CNut(Player::One) {
 
 }
 
-CNut::CNut(NutType type)
+CNut::CNut(Player owner)
 {
-	this->type = type;
+	this->owner = owner;
 	CTextureRegion region;
 	region.x = 0;
 	region.y = 0;
 	region.width = 95;
 	region.height = 95;
-	switch (type) {
-	case NutType::White_One:
+	switch (owner) {
+	case Player::One:
 		this->assetName = "white_nut";
 		break;
-	case NutType::Wooden_Two:
+	case Player::Two:
 		this->assetName = "wooden_nut";
 		break;
 	}

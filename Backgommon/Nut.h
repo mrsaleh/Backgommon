@@ -1,11 +1,7 @@
 #pragma once
 
 #include "Sprite.h"
-
-enum struct NutType {
-	Wooden_Two,
-	White_One
-};
+#include "Shared.h"
 
 class CNut : public CSprite
 {
@@ -15,9 +11,10 @@ private:
 	float passedTime;
 	float nutStartX;
 	float nutStartY;
-	NutType type;
+	
 public:
-	CNut(NutType type);
+	Player owner;
+	CNut(Player owner);
 	CNut();
 	~CNut();
 	void Move(int targetX,int targetY);
