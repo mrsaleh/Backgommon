@@ -165,7 +165,8 @@ public:
 			if (selectedNut == nullptr) {
 				//Selects a nut under cursor
 				CNut * selectedNut = stacks[i]->Select(x, y, currentPlayer);
-				if (selectedNut != nullptr) {
+				if (selectedNut != nullptr) {					
+					
 					this->selectedNut = selectedNut;
 					this->selectedNutStack = i;
 					std::cout << "Stack " << i << "nut selected!" << std::endl;
@@ -175,8 +176,8 @@ public:
 			else {
 				//Moves selected nut to the under-cursor stack
 				if (stacks[i]->Contains(x, y)) {
-
-
+					//Moves nut to selected stack if player had required roll on dice
+					int destStack = i;
 					CStack * stack = stacks[i];
 					if (stack->CanAdd(selectedNut)) {
 						stacks[selectedNutStack]->PopNut();
