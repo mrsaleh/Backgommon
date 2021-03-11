@@ -1,12 +1,15 @@
 #include "Nut.h"
 #include "tween.hpp"
 
-CNut::CNut() :CNut(Player::One) {
+#include <iostream>
 
+CNut::CNut() :CNut(Player::One) {
+	stackIndex = -1;
 }
 
 CNut::CNut(Player owner)
 {
+	stackIndex = -1;
 	this->owner = owner;
 	CTextureRegion region;
 	region.x = 0;
@@ -49,6 +52,18 @@ void CNut::Move(int targetX, int targetY) {
 	passedTime = 0;
 	nutStartX = this->x;
 	nutStartY = this->y;
+}
+
+void CNut::SetSelected(bool isSelected) {
+	selected = isSelected;
+	std::cout << "Selected:" << isSelected << std::endl;
+	if (selected){
+		tintG = 255;
+		tintR = 200;
+		tintB = 150;
+	}
+	else
+		tintR = tintG = tintB = 255;
 }
 
 CNut::~CNut()

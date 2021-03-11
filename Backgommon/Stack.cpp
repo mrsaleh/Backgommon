@@ -72,14 +72,17 @@ void CStack::AddNut(CNut * nut) {
 }
 
 CNut * CStack::Select(int x, int y, Player owner) {
+	CNut* selected = nullptr;
 	if (!this->nuts.empty()) {
 		if (this->nuts.back()->owner == owner) {
-			if (this->nuts.back()->Contains(x, y)) {
-				return this->nuts.back();
-			}
+			selected = this->nuts.back();
+			if (selected->Contains(x, y)) {				
+				selected->SetSelected(true);
+			}else
+				selected->SetSelected(false);
 		}
 	}
-	return nullptr;
+	return selected;
 }
 
 CNut * CStack::PopNut() {

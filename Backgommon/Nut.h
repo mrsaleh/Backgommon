@@ -11,7 +11,9 @@ private:
 	float passedTime;
 	float nutStartX;
 	float nutStartY;
-	
+	bool selected;
+public:
+	int stackIndex;
 public:
 	Player owner;
 	CNut(Player owner);
@@ -19,5 +21,6 @@ public:
 	~CNut();
 	void Move(int targetX,int targetY);
 	void Tick(float deltaTime);
+	void SetSelected(bool isSelected);
 };
 

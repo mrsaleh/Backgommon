@@ -3,7 +3,13 @@
 #include <SDL_image.h>
 
 CEngine::CEngine()
-{
+{	
+	deltaTime = 0;
+	lastFrameTime = 0;
+	window = nullptr;
+	renderer = nullptr;
+	memset(& event,0,sizeof(SDL_Event));
+
 	if (SDL_Init(SDL_INIT_VIDEO) != 0) {
 		std::cout << "SDL_Init Error: " << SDL_GetError() << std::endl;
 		return;
@@ -98,6 +104,8 @@ void CEngine::Draw(CSprite * sprite) {
 	if (sprite->flipY)
 		flip = static_cast<SDL_RendererFlip>(flip | SDL_FLIP_VERTICAL);
 
+	SDL_SetTextureColorMod(this->textures[sprite->assetName], sprite->tintR,sprite->tintG, sprite->tintB);
+	SDL_SetTextureAlphaMod(this->textures[sprite->assetName], sprite->alpha);
 	SDL_RenderCopyEx(renderer, this->textures[sprite->assetName], &source, &dest, sprite->ratation, &rotationPoint, flip);
 }
 

@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include "TextureRegion.h"
+#include <SDL.h>
 
 class CSprite
 {
@@ -27,6 +28,8 @@ public:
 	CTextureRegion region;
 	bool flipX;
 	bool flipY;
+	Uint8 tintR, tintG, tintB;
+	Uint8 alpha;
 };
 
 

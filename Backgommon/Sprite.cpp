@@ -1,10 +1,13 @@
 #include "Sprite.h"
 
+#include <iostream>
+
 CSprite::CSprite()
 {
 	this->ratation = 0;
 	this->flipX = this->flipY = false;
 	this->pivotX = this->pivotY = 0.5f;
+	tintR = tintG = tintB = alpha = 255;
 }
 
 CSprite::~CSprite()
@@ -18,6 +21,7 @@ bool CSprite::Contains(int x, int y) {
 	float maxY = minY + this->height;
 
 	if (x >= minX && x <= maxX && y >= minY && y <= maxY) {
+		std::cout << "Contain" << std::endl;
 		return true;
 	}
 	return false;
