@@ -15,15 +15,14 @@ public:
 private:
 	StackType type;
 	int index;
-	CNut * removedNut;
+	//CNut * removedNut;
+	bool selected;
 public:
 	CStack();
 	CStack(StackType type,int index);
+	void SetSelected(bool selected);
 	void AddNut(CNut * nut);
-	bool CanAdd(CNut * nut);
 	//Returns removed nut from AddNut operation , if there was one
-	CNut * PickRemovedNut();
-	CNut * Select(int x, int y,Player owner);
 	CNut * PopNut();
 	CNut * PeekNut();
 	~CStack();

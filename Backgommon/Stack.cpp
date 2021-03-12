@@ -4,11 +4,13 @@
 
 CStack::CStack()
 {
+	selected = false;
 }
 
 CStack::CStack(StackType type, int index)
 {
-	this->removedNut = nullptr;
+	selected = false;
+	//this->removedNut = nullptr;
 	this->index = index;
 	this->type = type;
 	CTextureRegion region;
@@ -33,32 +35,23 @@ CStack::CStack(StackType type, int index)
 	this->pivotY = 0.0f;
 }
 
-bool CStack::CanAdd(CNut * nut) {
-	if (this->nuts.size() > 1 && nut->owner != this->nuts.back()->owner)
-		return false;
-	return true;
+void CStack::SetSelected(bool selected) {
+	this->selected = selected;
+	
+	if (selected) {
+		tintG = 255;
+		tintR = 200;
+		tintB = 150;
+	}
+	else
+		tintR = tintG = tintB = 255;
 }
 
-void CStack::AddNut(CNut * nut) {
-	this->removedNut = nullptr;
-	if (this->nuts.size() > 1 && nut->owner != this->nuts.back()->owner)
-		return;
 
-	if (this->nuts.empty()) {
-		this->nuts.push_back(nut);
-	}
-	else {
-		if (this->nuts.back()->owner != nut->owner) {
-			if (this->nuts.size() == 1) {
-				this->removedNut = this->nuts.back();
-				this->nuts.clear();
-				this->nuts.push_back(nut);
-			}
-		}
-		else if (this->nuts.back()->owner == nut->owner) {
-			this->nuts.push_back(nut);
-		}
-	}
+void CStack::AddNut(CNut * nut) {
+	
+	this->nuts.push_back(nut);
+	nut->stackIndex = index;	
 
 	//Position nut
 	float margin = 28;
@@ -69,20 +62,6 @@ void CStack::AddNut(CNut * nut) {
 	else {
 		nut->Move(this->x, this->y + nut->height / 2 - margin / 2 + (nuts.size() - 1) * nutRealHeight);
 	}
-}
-
-CNut * CStack::Select(int x, int y, Player owner) {
-	CNut* selected = nullptr;
-	if (!this->nuts.empty()) {
-		if (this->nuts.back()->owner == owner) {
-			selected = this->nuts.back();
-			if (selected->Contains(x, y)) {				
-				selected->SetSelected(true);
-			}else
-				selected->SetSelected(false);
-		}
-	}
-	return selected;
 }
 
 CNut * CStack::PopNut() {
@@ -100,12 +79,6 @@ CNut * CStack::PeekNut() {
 	return nullptr;
 }
 
-
-CNut * CStack::PickRemovedNut() {
-	CNut * result = this->removedNut;
-	this->removedNut = nullptr;
-	return result;
-}
 
 CStack::~CStack()
 {

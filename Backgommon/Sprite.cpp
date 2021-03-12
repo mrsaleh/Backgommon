@@ -21,7 +21,6 @@ bool CSprite::Contains(int x, int y) {
 	float maxY = minY + this->height;
 
 	if (x >= minX && x <= maxX && y >= minY && y <= maxY) {
-		std::cout << "Contain" << std::endl;
 		return true;
 	}
 	return false;

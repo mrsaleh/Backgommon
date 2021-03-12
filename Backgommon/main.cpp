@@ -20,32 +20,57 @@ private:
 	int selectedNutStack;
 public:
 	void createStacks() {
+		int offset = 50;	
+		const int middleBarSize = 150;
 
 		//Bottom stacks
-		for (int i = 11; i >= 0; i--) {
+		for (int i = 0; i < 12; i++) {
 			CStack* newStack;
 			if (i % 2 == 0)
 				newStack = new CStack(StackType::Wooden_Two, i);
 			else
 				newStack = new CStack(StackType::White_One, i);
-			newStack->x += i * newStack->width + newStack->width / 2;
+			stacks.push_back(newStack);
+			
+		}
+
+		for (int i = 0; i < 12; i++) {
+			auto newStack = stacks[i];
+			if (i == 0)
+				offset += (12 - i +1) * newStack->width ;
+			if (i == 6)
+				offset -= 100;
+			newStack->x = offset;
 			newStack->pivotY = 1.0f;
 			newStack->y = 720;
-			stacks.push_back(newStack);
+			offset -= newStack->width;
 		}
 
 		//Top stacks
-		for (int i = 0; i < 12; i++) {
+		for (int i =0; i < 12; i++) {
 			CStack* newStack;
 			if (i % 2 == 1)
 				newStack = new CStack(StackType::Wooden_Two, i + 12);
 			else
 				newStack = new CStack(StackType::White_One, i + 12);
-			newStack->x += i * newStack->width + newStack->width / 2;
-			newStack->ratation = 180.0f;
-			newStack->y = 0;
 			stacks.push_back(newStack);
 		}
+
+		offset = 50;
+		for (int i = 0; i < 12; i++) {			
+			auto newStack = stacks[i + 12];
+			if (i == 0)
+				offset += newStack->width / 2 ;
+			if (i == 6)
+				offset += 100;
+			newStack->x += offset;
+			newStack->ratation = 180.0f;
+			newStack->y = 0;
+			
+			offset += newStack->width;
+		}
+
+		
 	}
 
 	void addNutsToTheBoards() {
@@ -166,7 +191,7 @@ public:
 		SetStarterPlayer();
 	}
 
-	CNut* findNut(int x,int y) {
+	CNut* FindNut(int x,int y) {
 		for (auto stack : stacks) {
 			for (auto nut : stack->nuts) {
 				if (nut->Contains(x, y))
@@ -176,11 +201,12 @@ public:
 		return nullptr;
 	}
 
-	CStack* findStack(int x, int y,int& stackIndex) {
+	CStack* FindStack(int x, int y,int& stackIndex) {
 		int i = 0;
 		for (auto stack : stacks) {
 			if(stack->Contains(x,y)){
 				stackIndex = i;
+				return stack;
 			}
 			i++;
 		}
@@ -189,7 +215,7 @@ public:
 		return nullptr;
 	}
 
-	void deselect() {
+	void DeselectNuts() {
 		for (auto stack : stacks) {
 			for (auto nut : stack->nuts) {
 				nut->SetSelected(false);
@@ -197,7 +223,13 @@ public:
 		}
 	}
 
-	std::vector<int> findCombinations(std::vector<int> diceNumbers) {
+	void DeselectStacks() {
+		for (auto stack : stacks) {
+			stack->SetSelected(false);
+		}
+	}
+
+	std::vector<int> FindCombinations(std::vector<int> diceNumbers) {
 		std::vector<int> combinations;
 		for (auto i = 0; i<diceNumbers.size(); i++) {			
 			combinations.push_back(diceNumbers[i]);			
@@ -223,82 +255,123 @@ public:
 	it back and only can move to stacks which are in the sum or one of his
 	dice numbers
 	*/
-	void getPossibleMoves(CNut* nut, std::vector<int> diceNumbers)
-	{		
-		auto availableMoves = findCombinations(diceNumbers);
+	std::vector<CStack*> FindPossibleTargetStacks(CNut* nut, std::vector<int> dice)
+	{
+		std::vector<CStack *> possibleTargetStacks;		
+
+		auto availableMoves = FindCombinations(dice);
 		for (auto move : availableMoves) {
-			//Check if the movie is possible
+			//Check if the move is possible
+			auto moveStackIndex = 0;
+			if(nut->owner == Player::One)
+				moveStackIndex = nut->stackIndex + move;
+			else
+				moveStackIndex = nut->stackIndex - move;
+
+			if (moveStackIndex < stacks.size()) {
+				auto targetStack = stacks[moveStackIndex];				
+				if (targetStack->nuts.size() == 0) {
+					possibleTargetStacks.push_back(targetStack);
+				}else{
+					auto latestNut = targetStack->nuts.back();
+					if (nut->owner == latestNut->owner) {
+						possibleTargetStacks.push_back(targetStack);
+					}
+					else if (targetStack->nuts.size() == 1) {
+						//If there was only one opponent nut
+						possibleTargetStacks.push_back(targetStack);
+					}
+				}					
+			}
+			else {
+				//This move , moves the nut out of the board,
+				//Player only can do this in the situations that
+				//All of her/his nuts are in the lastest quarter of 
+				//the board
+
+			}
 		}
-		
+
+		return possibleTargetStacks;		
 	}
 
 	void OnClick(unsigned char button, int x, int y) override {
-		std::cout << "Mouse button pressed" << std::endl;
-		auto clickedNut = findNut(x, y);;
 		
-		if (clickedNut != nullptr) {			
-			deselect();
-			clickedNut->SetSelected(true);			
-			selectedNut = clickedNut;
+		std::vector<int> dice = { 1, 2 };
+
+		auto clickedNut = FindNut(x, y);;
+		
+		if (clickedNut != nullptr) {
+			if (clickedNut == stacks[clickedNut->stackIndex]->nuts.back()) {
+				DeselectNuts();
+
+				clickedNut->SetSelected(true);
+				selectedNut = clickedNut;
+
+				if (selectedNut != nullptr) {
+					DeselectStacks();
+					auto targetStacks = FindPossibleTargetStacks(selectedNut, dice);
+					for (auto stack : targetStacks) {
+						stack->SetSelected(true);
+					}
+				}
+			}
+			else {
+				std::cout << "Backgommon Rule: You can't move the nut that has another nut over it!" << std::endl;
+			}
+			
 		}
 		else {
 			int selectedStackIndex = 0;
-			auto selectedStack = findStack(x,y, selectedStackIndex);
+			auto selectedStack = FindStack(x,y, selectedStackIndex);
 			if (selectedStack != nullptr) {
+				if (selectedNut !=  nullptr) {
+					auto possibleTargetStacks = FindPossibleTargetStacks(selectedNut, dice);
+					auto targetStackIterator =  std::find(possibleTargetStacks.begin(), possibleTargetStacks.end(), selectedStack);
+					if (targetStackIterator != possibleTargetStacks.end()) {
+						auto nutStack = stacks[selectedNut->stackIndex];
+						if (selectedNut == nutStack->PeekNut()) {
+							//Remove the nut from its old stack to the new stack
+							auto targetStack = (*targetStackIterator);
+							if (targetStack->nuts.size() > 1 && targetStack->nuts.back()->owner != selectedNut->owner)
+								throw std::runtime_error("The move is impossible , there must be an issue in "
+									"FindPossibleTargetStacks functions that didn't filter this move");
+							if (targetStack->nuts.size() == 1 && targetStack->nuts.back()->owner != selectedNut->owner) {
+								//We must remove that lonely poor opponent's nut
+								
+								auto removedNut = targetStack->PopNut();
+								RemoveNutFromBoard(removedNut);
+							}
+							nutStack->PopNut();
+							targetStack->AddNut(selectedNut);
+
+							DeselectNuts();
+							DeselectStacks();
+							selectedNut = nullptr;
+							selectedStack = nullptr;
+
+						}
+
+					}
+				}
 				//User clicked a stack , now must make sure that 
 				//does he/she meant to move a nut there , do he/she
 				// selected a nut before
-				if (selectedNut != nullptr) {
-					
-				}
+				
 			}
 		}
-			
+	}
 
-
-		//for (int i = 0; i < stacks.size(); i++) {
-		//	if (selectedNut == nullptr) {
-		//		//Selects a nut under cursor
-		//		CNut * selectedNut = stacks[i]->Select(x, y, currentPlayer);
-		//		if (selectedNut != nullptr) {					
-		//			
-		//			this->selectedNut = selectedNut;
-		//			this->selectedNutStack = i;
-		//			std::cout << "Stack " << i << "nut selected!" << std::endl;
-
-		//		}
-		//	}
-		//	else {
-		//		//Moves selected nut to the under-cursor stack
-		//		if (stacks[i]->Contains(x, y)) {
-		//			//Moves nut to selected stack if player had required roll on dice
-		//			int destStack = i;
-		//			CStack * stack = stacks[i];
-		//			if (stack->CanAdd(selectedNut)) {
-		//				stacks[selectedNutStack]->PopNut();
-		//				stack->AddNut(this->selectedNut);
-		//				CNut * removedNut = stack->PickRemovedNut();
-		//				if (removedNut != nullptr) {
-		//					if (removedNut->owner == Player::One) {
-		//						playerOneRemovedNuts.push_back(removedNut);
-		//						removedNut->Move(900, 100);
-		//					}
-		//					else if (removedNut->owner == Player::Two) {
-		//						playerTwoRemovedNuts.push_back(removedNut);
-		//						removedNut->Move(900, 100);
-		//					}
-		//				}
-		//				this->selectedNut = nullptr;
-		//				std::cout << "Nut moved from " << selectedNutStack << " to " << i << " stack!";
-		//			}
-		//			else {
-		//				std::cout << "Nut can not moved from " << selectedNutStack << " to " << i << " stack!";
-		//				this->selectedNut = nullptr;
-		//			}
-		//		}
-
-		//	}
-		//}
+	void RemoveNutFromBoard(CNut* removedNut) {
+		//Move it to the middle of board
+		if (removedNut->owner == Player::One){
+			playerOneRemovedNuts.push_back(removedNut);
+			removedNut->Move(stacks.back()->width * 7 + stacks.back()->width/2, 500);
+		}
+		else {
+			playerTwoRemovedNuts.push_back(removedNut);
+			removedNut->Move(stacks.back()->width * 7 + stacks.back()->width / 2, 10);
+		}
 	}
 
 	void Run() {
@@ -342,16 +415,10 @@ public:
 
 
 int main(int argc, char* argv[]) {
-	std::vector<int> dice = { 1, 2, 3 };
+	std::vector<int> dice = {3,5 };
 	
 	Game game;
-	std::vector<int> combinations = game.findCombinations(dice);
-
-	std::cout << "Combinations:";
-	for (auto n : combinations) {
-		std::cout << n << ",";
-	}
-	std::cout << std::endl;
+	std::vector<int> combinations = game.FindCombinations(dice);	
 
 	game.StartGame();
 	game.Run();

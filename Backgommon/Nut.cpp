@@ -41,6 +41,7 @@ CNut::CNut(Player owner)
 void CNut::Tick(float deltaTime) {
 	passedTime += deltaTime;
 	if (passedTime <= 1.0f) {
+		
 		this->x = nutStartX + tween::cubicinout(passedTime) * (targetX - nutStartX);
 		this->y = nutStartY + tween::cubicinout(passedTime) * (targetY - nutStartY);
 	}
@@ -49,6 +50,12 @@ void CNut::Tick(float deltaTime) {
 void CNut::Move(int targetX, int targetY) {
 	this->targetX = targetX;
 	this->targetY = targetY;
+
+	CTweenManager::GoTo(
+		this->x, this->y,
+		targetX, TargetY,
+		Easing::CubicInOut
+	);
 	passedTime = 0;
 	nutStartX = this->x;
 	nutStartY = this->y;
@@ -56,7 +63,7 @@ void CNut::Move(int targetX, int targetY) {
 
 void CNut::SetSelected(bool isSelected) {
 	selected = isSelected;
-	std::cout << "Selected:" << isSelected << std::endl;
+	
 	if (selected){
 		tintG = 255;
 		tintR = 200;
